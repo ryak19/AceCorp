@@ -8,16 +8,16 @@ variable "location" {
 }
 
 # Create Enviroment
-variable "prod" {
+variable "production" {
   type        = string
   default     = "prod"
   description = "Azure region for deployment of resources."
 }
 
 # Create Enviroment
-variable "cnct" {
+variable "connectivity" {
   type        = string
-  default     = "prod"
+  default     = "cnct"
   description = "Azure region for deployment of resources."
 }
 
@@ -26,4 +26,10 @@ variable "SubIDs" {
   type        = string
   default     = ""
   description = "Azure Subscription ID."
+}
+
+variable "firewall_sku_tier" {
+  type        = string
+  description = "Firewall SkU."
+  default     = "Standard"
 }
