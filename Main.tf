@@ -1,13 +1,3 @@
-# 
-
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = ">= 3.109.0"
-    }
-  }
-}
 
 # Define the local variables
 locals {
@@ -26,7 +16,7 @@ resource "azurerm_resource_group" "connectivity" {
   name     = "rg-ace-${var.cnct}-${var.location}-01"
   location = var.location
   tags = {
-
+    environment = "AceCorp"
   }
 }
 
@@ -35,59 +25,65 @@ resource "azurerm_resource_group" "connectivity" {
 resource "azurerm_resource_group" "production" {
   name     = "rg-ace-${var.prod}-${var.location}-01"
   location = var.location
+  tags = {
+    environment = "AceCorp"
+  }
 }
 
 # Create a Hub vnet
 resource "azurerm_virtual_network" "connectivity-vnet" {
   name                = "vnet-${var.cnct}-${var.location}-01"
-  location            = azurerm_resource_group.network.location
-  resource_group_name = azurerm_resource_group.network.name
+  location            = azurerm_resource_group.connectivity.location
+  resource_group_name = azurerm_resource_group.connectivity.name
   address_space       = [local.address_space_vnet_connectivity]
+  tags = {
+    environment = "AceCorp"
+  }
 }
 
 # Create a Prod vnet
 resource "azurerm_virtual_network" "production-vnet" {
   name                = "vnet-${var.cnct}-${var.location}-01"
-  location            = azurerm_resource_group.network.location
-  resource_group_name = azurerm_resource_group.network.name
+  location            = azurerm_resource_group.production.location
+  resource_group_name = azurerm_resource_group.production.name
   address_space       = [local.address_space_vnet_connectivity]
+  tags = {
+    environment = "AceCorp"
+  }
 }
 
 # Create SUBNET - GatewaySubnet
 resource "azurerm_subnet" "GatewaySubnet" {
   name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.network.name
+  resource_group_name  = azurerm_resource_group.connectivity.name
   virtual_network_name = azurerm_virtual_network.connectivity-vnet.name
   address_prefixes     = [local.address_space_snet_GatewaySubnet]
-
 }
 
 # Create SUBNET - FirewallSubnet
 resource "azurerm_subnet" "FirewallSubnet" {
   name                 = "AzureFirewallSubnet"
-  resource_group_name  = azurerm_resource_group.network.name
+  resource_group_name  = azurerm_resource_group.connectivity.name
   virtual_network_name = azurerm_virtual_network.connectivity-vnet.name
   address_prefixes     = [local.address_space_snet_FirewallSubnet]
-
 }
 
 # Create SUBNET - BastionSubnet
 resource "azurerm_subnet" "BastionSubnet" {
   name                 = "AzureBastionSubnet"
-  resource_group_name  = azurerm_resource_group.network.name
+  resource_group_name  = azurerm_resource_group.connectivity.name
   virtual_network_name = azurerm_virtual_network.connectivity-vnet.name
   address_prefixes     = [local.address_space_snet_BastionSubnet]
-
 }
 
 resource "azurerm_network_security_group" "connectivity" {
   name                = "cnct-security-group"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.connectivity.location
+  resource_group_name = azurerm_resource_group.connectivity.name
 }
 
 resource "azurerm_network_security_group" "production" {
   name                = "prod-security-group"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.connectivity.location
+  resource_group_name = azurerm_resource_group.production.name
 }
